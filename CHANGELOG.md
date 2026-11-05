@@ -12,6 +12,8 @@ upgrading.
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-11-05
+
 ### Added
 
 - **First release.** React surfaces for laravel-fun-lab, built only from react-fancy:
