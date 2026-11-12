@@ -139,6 +139,58 @@ describe("FunLabLeaderboard", () => {
     const out = board({ entries: [] });
     expect(out).toContain("No one on this board yet.");
   });
+
+  // CC-fancy-0032: linked and custom names.
+  describe("names as links", () => {
+    it("renders the same markup as before when no name props are set", async () => {
+      // The fixture was written by the code as it stood before nameHref,
+      // renderName and linkComponent existed.
+      await expect(board()).toMatchFileSnapshot("./__fixtures__/leaderboard-default.html");
+      expect(board()).not.toContain("<a ");
+    });
+
+    it("links a name when nameHref returns a URL, and leaves it plain on null", () => {
+      const out = board({ nameHref: (e) => (e.id === 11 ? `/profiles/${e.id}` : null) });
+      expect(out).toContain('<a href="/profiles/11">Ada</a>');
+      expect(count(out, "<a ")).toBe(1);
+      expect(out).toContain("Bo");
+    });
+
+    it("keeps the viewer's row marked when its name is a link", () => {
+      const out = board({ nameHref: (e) => `/profiles/${e.id}` });
+      expect(out).toContain('<a href="/profiles/7">Bo</a>');
+      expect(out).toContain("(You)");
+      expect(count(out, 'aria-current="true"')).toBe(1);
+      // "(You)" sits outside the link, so the link text is just the name.
+      expect(out).not.toMatch(/<a [^>]*>[^<]*\(You\)/);
+    });
+
+    it("uses linkComponent in place of <a>", () => {
+      const Link = ({ href, children }: { href: string; children?: React.ReactNode }) => (
+        <span data-test-link={href}>{children}</span>
+      );
+      const out = board({ nameHref: (e) => `/profiles/${e.id}`, linkComponent: Link });
+      expect(out).toContain('<span data-test-link="/profiles/11">Ada</span>');
+      expect(out).not.toContain("<a ");
+    });
+
+    it("lets renderName win over nameHref", () => {
+      const out = board({
+        nameHref: (e) => `/profiles/${e.id}`,
+        renderName: (e, name) => <strong data-test-name={e.id}>{name.toUpperCase()}</strong>,
+      });
+      expect(out).toContain('<strong data-test-name="11">ADA</strong>');
+      expect(out).toContain('<strong data-test-name="7">BO</strong>');
+      expect(out).not.toContain("<a ");
+      expect(out).toContain("(You)");
+      expect(count(out, 'aria-current="true"')).toBe(1);
+    });
+
+    it("passes renderName the fallback name when the host has none", () => {
+      const out = board({ names: {}, renderName: (_e, name) => <em>{name}</em> });
+      expect(out).toMatch(/<em>[^<]*11[^<]*<\/em>/);
+    });
+  });
 });
 
 describe("FunLabAchievementGrid", () => {

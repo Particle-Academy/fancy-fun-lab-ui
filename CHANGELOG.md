@@ -12,6 +12,16 @@ upgrading.
 
 ## [Unreleased]
 
+### Added
+
+- **`FunLabLeaderboard` names can be links or custom content.** Three optional
+  props: `nameHref(entry)` returns a URL to link that name to, or null to leave
+  it as text; `renderName(entry, name)` renders the name cell content and wins
+  over `nameHref`; `linkComponent` (default `"a"`) renders the links, so a host
+  can pass Inertia's `Link` or a router link. The viewer's row still says
+  "(You)", outside the link, and keeps `aria-current`. Additive: with none of
+  them set the markup is byte-for-byte what it was, so consumers do nothing.
+
 ### Changed
 
 - **Releases need a lab-run certificate.** `publish.yml` gains a read-only

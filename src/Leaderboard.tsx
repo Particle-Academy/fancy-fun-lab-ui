@@ -1,4 +1,4 @@
-import { useId, useMemo } from "react";
+import { useId, useMemo, type ElementType, type ReactNode } from "react";
 import { cn, Badge, Card, Heading, MultiSwitch, Pagination, Select, Table, Text } from "@particle-academy/react-fancy";
 import { ltrNumber } from "./format";
 import { mergeLabels, translator, type FunLabLabels } from "./labels";
@@ -25,6 +25,22 @@ export interface FunLabLeaderboardProps {
   onPageChange?: (page: number) => void;
   /** Display names keyed by profile id (`entry.id`). The API carries ids only. */
   names?: Record<string, string>;
+  /**
+   * Where an entry's name links to, or null to leave that name as text. Each
+   * link is rendered with `linkComponent`. Ignored when `renderName` is set.
+   */
+  nameHref?: (entry: FunLabLeaderboardEntry) => string | null;
+  /**
+   * Renders an entry's name cell content. Gets the resolved display name
+   * (from `names`, or the fallback). Wins over `nameHref`. The viewer's
+   * "(You)" marker is still added after it.
+   */
+  renderName?: (entry: FunLabLeaderboardEntry, name: string) => ReactNode;
+  /**
+   * The element or component used for `nameHref` links, given `href` and
+   * children: pass Inertia's `Link`, a router link, etc. Default `"a"`.
+   */
+  linkComponent?: ElementType;
   /** The viewer's profile id; that row is marked in text and with `aria-current`. */
   currentProfileId?: number | null;
   /** Heading. Default from labels. */
@@ -57,6 +73,9 @@ export function FunLabLeaderboard({
   lastPage = 1,
   onPageChange,
   names,
+  nameHref,
+  renderName,
+  linkComponent,
   currentProfileId = null,
   title,
   locale,
@@ -67,6 +86,7 @@ export function FunLabLeaderboard({
   const t = translator(l, locale);
   const headingId = useId();
   const showLevel = metric !== null && metric !== "";
+  const Link = (linkComponent ?? "a") as ElementType;
 
   const byList = [
     { value: "xp", label: t.text("byXp") },
@@ -163,6 +183,14 @@ export function FunLabLeaderboard({
                 const score = scoreFor(e, by);
                 const mine = currentProfileId !== null && e.id === currentProfileId;
                 const name = names?.[String(e.id)] ?? t.text("unnamed", { id: String(e.awardable_id) });
+                const href = renderName ? null : (nameHref?.(e) ?? null);
+                const nameContent: ReactNode = renderName ? (
+                  renderName(e, name)
+                ) : href !== null ? (
+                  <Link href={href}>{name}</Link>
+                ) : (
+                  name
+                );
                 return (
                   <Table.Row
                     key={e.id}
@@ -183,7 +211,7 @@ export function FunLabLeaderboard({
                       )}
                     </Table.Cell>
                     <Table.Cell>
-                      {name}
+                      {nameContent}
                       {mine ? <Text as="span" size="sm" weight="semibold">{` (${t.text("you")})`}</Text> : null}
                     </Table.Cell>
                     {showLevel ? <Table.Cell>{e.metric ? ltrNumber(e.metric.current_level, locale) : null}</Table.Cell> : null}
