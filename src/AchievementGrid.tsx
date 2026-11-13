@@ -103,7 +103,18 @@ export function FunLabAchievementGrid({
                     </Badge>
                   </div>
                   {a.description ? (
-                    <Text as="p" size="sm" color="muted">
+                    <Text
+                      as="p"
+                      size="sm"
+                      color="muted"
+                      // A locked tile is a muted card, and muted text on it is
+                      // 4.39:1 (zinc-500 on zinc-100), under AA. The soft token
+                      // keeps it secondary and readable.
+                      className={cn(
+                        !isEarned &&
+                          "text-[color:var(--fancy-text-soft,var(--color-zinc-700))] dark:text-[color:var(--fancy-text-soft-dark,var(--color-zinc-300))]",
+                      )}
+                    >
                       {a.description}
                     </Text>
                   ) : null}

@@ -29,6 +29,14 @@ upgrading.
   when the fancy-labs lab has certified that exact version and commit. Consumers
   do nothing; this changes how releases are cut, not what the package does.
 
+### Fixed
+
+- **A locked achievement's description is readable** (axe `color-contrast`,
+  lab run 601, K36). A locked tile is react-fancy's muted card, and the
+  description was its muted text: zinc-500 on zinc-100, 4.39:1, under AA. On a
+  locked tile it now uses the soft text token (`--fancy-text-soft`, zinc-700 by
+  default). Earned tiles are unchanged. Nothing to do on upgrade.
+
 ## [0.1.0] - 2026-11-05
 
 ### Added

@@ -217,6 +217,22 @@ describe("FunLabAchievementGrid", () => {
     expect(out).toContain('data-fancy-fun-lab-achievement="adept"');
     expect(out).toContain('data-fancy-fun-lab-filter="locked"');
   });
+
+  it("keeps a locked tile's description readable on the muted card", () => {
+    // react-fancy's muted text (zinc-500) on its muted card (zinc-100) is
+    // 4.39:1, under AA for body text (axe color-contrast, lab run 601, K36).
+    // A locked tile is a muted card, so its description takes the soft token.
+    const out = html(
+      <FunLabAchievementGrid
+        achievements={[{ id: 3, slug: "ten", name: "Ten", description: "Ten invoices paid on time" }]}
+        earned={[]}
+      />,
+    );
+    const p = /<p[^>]*>Ten invoices paid on time<\/p>/.exec(out)?.[0] ?? "";
+    expect(p).not.toBe("");
+    expect(p).not.toContain("--fancy-text-muted,");
+    expect(p).toContain("text-[color:var(--fancy-text-soft,var(--color-zinc-700))]");
+  });
 });
 
 describe("FunLabXpFeed", () => {
