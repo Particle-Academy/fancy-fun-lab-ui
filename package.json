@@ -1,6 +1,6 @@
 {
   "name": "@particle-academy/fancy-fun-lab-ui",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "React UI for Laravel Fun Lab: profile summary, leaderboards per gamed metric, achievement grid, XP feed and level-up announcement. Controlled, JSON-friendly, accessible, agent-driveable.",
   "keywords": [
     "gamification",

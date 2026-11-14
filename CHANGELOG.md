@@ -12,6 +12,8 @@ upgrading.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-13
+
 ### Added
 
 - **`FunLabLeaderboard` names can be links or custom content.** Three optional
