@@ -1,48 +1,81 @@
-# fancy-fun-lab-ui
+# Using @particle-academy/fancy-fun-lab-ui — guide for agents
 
-React surfaces for `particle-academy/laravel-fun-lab`. This file describes this
-repo's code. Process (publishing, versions, changelog rules) lives in the
-envelope's `RULES.md`.
+How an agent installs and uses this package in a consumer app. What the package
+is, is in [README.md](./README.md). Notes for working ON this repo's code are in
+[CONTRIBUTING.md](./CONTRIBUTING.md).
 
-## Layout
+## Install
 
-- `src/types.ts`: data shapes. **snake_case on purpose**: they are the REST
-  (`api/lfl`) and broadcast payloads as laravel-fun-lab emits them. Do not
-  camelCase them; a host passes responses straight in.
-- `src/model.ts`: pure helpers (`levelProgress`, `scoreFor`,
-  `feedItemFromEcho`, `mergeFeed`, `metricProgressFromLevels`).
-- `src/format.ts`: `{name}` / `{+name}` templates, plurals, LTR-isolated numbers.
-- `src/labels.ts`: every string, with English defaults.
-- `src/announcer.ts` + `src/LiveRegion.tsx`: the rate-limited polite live region.
-- `src/client.ts`: a fetch-only, read-only client. No dependency, no cache.
-- One file per component.
+```bash
+npm install @particle-academy/fancy-fun-lab-ui @particle-academy/react-fancy
+```
 
-## Invariants
+```css
+/* app.css (Tailwind v4) */
+@import "tailwindcss";
+@import "@particle-academy/react-fancy/styles.css";
+@import "@particle-academy/fancy-fun-lab-ui/styles.css";
+@source "../node_modules/@particle-academy/react-fancy/dist";
+@source "../node_modules/@particle-academy/fancy-fun-lab-ui/dist";
+```
 
-- **Built only from react-fancy.** If a primitive is missing, that is a finding
-  against react-fancy, not a reason to hand-roll one here.
-- **Every number rendered in text goes through `interpolateNodes` / `ltrNumber`**,
-  so it is isolated left-to-right. A signed number is `{+name}`, never a literal
-  `+` in a template: outside the isolate, the bidi algorithm moves it to the far
-  side in RTL.
-- **Announcements only through `useFunLabAnnounce`**, never a second
-  `aria-live` region, or a provider can no longer rate-limit the page.
-- **A live region must be mounted before its text changes**, so `FunLabLevelUp`
-  keeps its region mounted while `event` is null.
-- **Rows present on first render are never announced** (`XpFeed`'s `seen` ref).
-- **Regexes are single-pass and linear.** No `[...]+$` trims (quadratic on a long
-  run); trim with a loop.
-- `styles.css` is unlayered and uses logical properties only.
+- **Peers:** `@particle-academy/react-fancy >=6.9.0 <7.0.0`, React 19, Tailwind v4.
+- **Node:** `>=22` to build.
+- The backend is the Composer package `particle-academy/laravel-fun-lab`; these
+  components take its REST (`api/lfl`) and broadcast payloads as-is.
 
-## Tests
+## Find it on the Fancy MCP server
 
-`npm test`: vitest, server-rendered markup (`renderToStaticMarkup`) and pure
-logic. There is no DOM library here, by design (same as fancy-mlm-ui).
+The catalog server is `https://ui.particle.academy/mcp` (streamable HTTP, no API
+key; MCP id `fancy-ui`). Registry entries for this package:
 
-What markup cannot show is checked in headless Chromium before a release:
-every component in `dir="ltr"` and `dir="rtl"` (with Arabic labels and
-`lang="ar"`), controls round-tripping through host state, a burst of ten
-awards spoken as two utterances, a level-up not taking focus, the celebration
-off under `prefers-reduced-motion: reduce`, a clean console, and a positive
-control proving the console collector catches a planted error. Build the
-package first and bundle against `dist`, as a consumer gets it.
+| Slug | Component |
+|---|---|
+| `fancy-fun-lab-ui` | The package itself |
+| `fun-lab-profile-summary` | `FunLabProfileSummary` |
+| `fun-lab-leaderboard` | `FunLabLeaderboard` |
+| `fun-lab-achievement-grid` | `FunLabAchievementGrid` |
+| `fun-lab-xp-feed` | `FunLabXpFeed` |
+| `fun-lab-level-up` | `FunLabLevelUp` |
+
+Use `search-components` ("leaderboard", "achievements") and
+`install-instructions` with a slug. These are package entries; install the npm
+package.
+
+## API essentials
+
+- **Client:** `createFunLabClient({ baseUrl: "/api/lfl", headers })` is a
+  fetch-only, read-only client: `leaderboard(type, query)`, `profile(type, id)`,
+  `meProfile()`, `meAchievements()`, `achievements()`, `gamedMetrics()`,
+  `metricLevels(metric)`.
+- **Controlled components.** `FunLabLeaderboard` takes `by`, `metric`,
+  `period`, `page` with `onByChange` / `onMetricChange` / `onPeriodChange` /
+  `onPageChange`; hold that state in the app.
+- **Live updates:** turn Echo events into feed items with
+  `feedItemFromEcho(event, payload)` and `mergeFeed(feed, item)`; listen for
+  `.xp.awarded` and `.metric.level-reached` on
+  `lfl.profile.<type>.<id>`.
+- **Announcements:** put one `FunLabLiveRegionProvider` near the root so every
+  component shares one rate-limited polite live region.
+- **Per-metric rows** for `FunLabProfileSummary`:
+  `metricProgressFromLevels(metric, { total_xp, current_level }, levels)`.
+- **Labels:** every string is a JSON label (`{name}` templates or CLDR plural
+  maps), with `locale` driving `Intl`. `defaultLabels` lists every key.
+- **Stable handles:** state is mirrored on the root as `data-fancy-fun-lab-*`
+  (`-by`, `-metric`, `-period`, `-page`, `-filter`, `-selected-metric`); rows and
+  tiles carry `-entry-id`, `-rank`, `-score`, `-achievement`, `-earned`,
+  `-feed-id`, `-feed-type`; every control sits in a
+  `data-fancy-fun-lab-control` wrapper.
+
+## Traps
+
+- **Payloads stay snake_case.** Pass API and broadcast responses straight in; do
+  not camelCase them.
+- **Missing `@source` lines** leave the components unstyled.
+- `metric` on the leaderboard needs a laravel-fun-lab release with per-metric
+  leaderboards (after 0.6.0). On older servers leave `metric` null.
+- The XP feed already announces level rows; give `FunLabLevelUp`
+  `announce={false}` when both are on the page.
+- Write a signed number as `{+name}` in a label, never a literal `+`, or RTL
+  layouts move the sign.
+- Rows present on first render are never announced, and nothing takes focus.

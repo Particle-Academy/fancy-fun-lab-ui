@@ -15,7 +15,7 @@ import type { FunLabLeaderboardEntry, FunLabFeedItem } from "./types";
  * No DOM library in this repo (as in fancy-mlm-ui), so these render on the
  * server and read the markup. Interaction, live-region timing, reduced motion
  * and RTL layout are checked in a real headless browser before a release (see
- * AGENTS.md), not here.
+ * CONTRIBUTING.md), not here.
  */
 const html = (el: React.ReactElement) => renderToStaticMarkup(el);
 const count = (s: string, needle: string) => s.split(needle).length - 1;

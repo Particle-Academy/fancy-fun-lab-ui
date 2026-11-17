@@ -10,6 +10,13 @@ React surfaces for [Laravel Fun Lab](https://github.com/Particle-Academy/laravel
 
 Built entirely from [react-fancy](https://github.com/Particle-Academy/react-fancy) components. Every component is controlled, and takes the shapes the Fun Lab REST API (`api/lfl`) and its broadcasts already emit, so a response goes straight in.
 
+<!-- fancy-agents-note:start -->
+> **For agents.** This package is listed on the Fancy MCP catalog server at
+> `https://ui.particle.academy/mcp` (streamable HTTP, no API key; MCP id `fancy-ui`),
+> with install commands and docs, alongside the rest of the kit. How an agent
+> installs and uses this package is in [AGENTS.md](https://github.com/Particle-Academy/fancy-fun-lab-ui/blob/main/AGENTS.md).
+<!-- fancy-agents-note:end -->
+
 ## Install
 
 ```bash
